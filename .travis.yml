@@ -31,11 +31,12 @@ script:
 
 before_deploy:
   - export DATA_SIZE_OF_PRECOMPILED_HEX=$(cat debug/app.map | grep _nvram_data_size | tr -s ' ' | cut -f2 -d' ')
+  - tar -zcf ${TRAVIS_BUILD_DIR}${REPO}-${BUILD_ENV}-${TRAVIS_TAG}.tar.gz bin/app.hex
 
 deploy:
   - provider: releases
     api_key: $GITHUB_TOKEN
-    file: bin/app.hex
+    file: ${TRAVIS_BUILD_DIR}${REPO}-${BUILD_ENV}-${TRAVIS_TAG}.tar.gz
     body: "DATA_SIZE_OF_PRECOMPILED_HEX: $DATA_SIZE_OF_PRECOMPILED_HEX"
     skip_cleanup: true
     on:
