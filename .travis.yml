@@ -19,6 +19,8 @@ env:
     - BOLOS_SDK=$TRAVIS_BUILD_DIR/devenv/nanos-secure-sdk-nanos-1421
 
 install:
+  - sudo apt-get install libusb-1.0-0-dev libudev-dev
+  - sudo pip install ledgerblue
   - mkdir -p devenv && cd devenv && ../scripts/prepare-devenv.sh && cd ..
   - wget http://mirrors.kernel.org/ubuntu/pool/main/g/gcc-8/libstdc++6_8-20180414-1ubuntu2_amd64.deb
   - sudo dpkg --force-all -i libstdc++6_8-20180414-1ubuntu2_amd64.deb
@@ -30,14 +32,16 @@ script:
   - make
 
 before_deploy:
-  - export DATA_SIZE_OF_PRECOMPILED_HEX=$(cat debug/app.map | grep _nvram_data_size | tr -s ' ' | cut -f2 -d' ')
-  - tar -zcf ${TRAVIS_BUILD_DIR}${REPO}-${BUILD_ENV}-${TRAVIS_TAG}.tar.gz bin/app.hex
+  - make load-script
+  - make identifier
+  - export IDENTIFIER=$(grep -Po "(?<=Application full hash . ).+" output.txt)
+  - tar -zcf ${TRAVIS_BUILD_DIR}${REPO}-${TRAVIS_TAG}.tar.gz run.sh bin/app.hex
 
 deploy:
   - provider: releases
     api_key: $GITHUB_TOKEN
-    file: ${TRAVIS_BUILD_DIR}${REPO}-${BUILD_ENV}-${TRAVIS_TAG}.tar.gz
-    body: "DATA_SIZE_OF_PRECOMPILED_HEX: $DATA_SIZE_OF_PRECOMPILED_HEX"
+    file: ${TRAVIS_BUILD_DIR}${REPO}-${TRAVIS_TAG}.tar.gz
+    body: "IDENTIFIER: $IDENTIFIER"
     skip_cleanup: true
     on:
       tags: true

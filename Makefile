@@ -115,11 +115,20 @@ include $(BOLOS_SDK)/Makefile.glyphs
 APP_SOURCE_PATH  += src
 SDK_SOURCE_PATH  += lib_stusb lib_stusb_impl lib_u2f
 
+APP_LOAD_PARAMS += --icon 0100000000ffffff00ffffffffffffffffffffc7e393c9799c7d8679fc93c9c7e3ffffffffffffffff
+
 load: all
 	python -m ledgerblue.loadApp $(APP_LOAD_PARAMS)
 
 delete:
 	python -m ledgerblue.deleteApp $(COMMON_DELETE_PARAMS)
+
+load-script: all
+	@echo pip install ledgerblue\; python -m ledgerblue.loadApp $(APP_LOAD_PARAMS) > run.sh
+	@sed -i -E "s/(--path )(.+')/\1\"\2\"/g" run.sh
+
+identifier: all
+	@python -m ledgerblue.loadApp $(APP_LOAD_PARAMS) --offline > output.txt
 
 # import generic rules from the sdk
 include $(BOLOS_SDK)/Makefile.rules
